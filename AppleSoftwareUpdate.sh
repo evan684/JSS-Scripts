@@ -91,6 +91,7 @@ DeferralValue="${4}"
 TimeOutinSec="${5}"
 ITContact="${6}"
 AppleSUIcon="${7}"
+MinimumBatteryLevel="60"
 
 # Set default values
 [[ -z "$DeferralValue" ]] && DeferralValue=3
@@ -132,46 +133,39 @@ AlertIcon="/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/Aler
 if [[ "$OSMajorVersion" -ge 14 ]]; then
     #SUGuide="by clicking on the Apple menu, clicking System Preferences and clicking Software Update to install any available updates."
     SUGuide="by navigating to:
-
  > System Preferences > Software Update"
 else
     #SUGuide="by opening up the App Store located in the Applications folder and clicking on the Updates tab to install any available updates."
     SUGuide="by navigating to:
-
  > App Store > Updates tab"
 fi
 
 # Message to let user to contact IT
 ContactMsg="There seems to have been an error installing the updates. You can try again $SUGuide
-
 If the error persists, please contact $ITContact."
 
 # Message to display when computer is running off battery
 NoACPower="The computer is currently running off battery and is not plugged into a power source."
 
+# Message to display when computer is running off battery but over MinimumBatteryLevel value. -Evan
+BatteryOverLimit="The computer is currently running off battery power but is over "$MinimumBatteryLevel". Contuning with update script."
+
 # Standard Update Message
 StandardUpdatePrompt="There is an OS update available for your Mac. Please click Continue to proceed to Software Update to run this update. If you are unable to start the process at this time, you may choose to postpone by one day.
-
 Attempts left to postpone: $CurrentDeferralValue
-
 You may install macOS software updates at any time $SUGuide"
 
 # Forced Update Message
 ForcedUpdatePrompt="There are software updates available for your Mac that require you to restart. You have already postponed updates the maximum number of times.
-
 Please save your work and click 'Update' otherwise this message will disappear and the computer will restart automatically."
 
 # Message shown when running CLI updates
 HUDMessage="Please save your work and quit all other applications. macOS software updates are being installed in the background. Do not turn off this computer during this time.
-
 This message will go away when updates are complete and closing it will not stop the update process.
-
 If you feel too much time has passed, please contact $ITContact.
-
 "
 #Out of Space Message
 NoSpacePrompt="Please clear up some space by deleting files and then attempt to do the update $SUGuide.
-
 If this error persists, please contact $ITContact."
 
 ## Functions ##
@@ -182,14 +176,22 @@ powerCheck (){
     # Let's wait 5 minutes to see if computer gets plugged into power.
     for (( i = 1; i <= 5; ++i )); do
         if [[ "$(/usr/bin/pmset -g ps | /usr/bin/grep "Battery Power")" = "Now drawing from 'Battery Power'" ]] && [[ $i = 5 ]]; then
-            echo "$NoACPower"
+            CurrentBatteryLevel=$(pmset -g batt |awk '/-InternalBattery-/{print $3}' | sed 's/%;//')
+            if [[ "$CurrentBatteryLevel" > "$MinimumBatteryLevel" ]]; then
+                echo "$BatteryOverLimit"
+                return 0
+            else
+                echo "$NoACPower"
+                echo "Current battery % is: $CurrentBatteryLevel"
+            fi
         elif [[ "$(/usr/bin/pmset -g ps | /usr/bin/grep "Battery Power")" = "Now drawing from 'Battery Power'" ]]; then
             /bin/sleep 60
         else
             return 0
         fi
     done
-    exit 11
+    # Evan - Swapped this to a 0 from an 11 to prevent constant jamf emails to admins
+    exit 0
 }
 
 
@@ -311,11 +313,13 @@ checkForDisplaySleepAssertions() {
     # Apps have to make the assertion and therefore it's possible some apps may not get captured.
     # Some assertions can be found here: https://developer.apple.com/documentation/iokit/iopmlib_h/iopmassertiontypes
     if [[ "$Assertions" ]]; then
-        echo "The following display-related power assertions have been detected:"
-        echo "$Assertions"
+        if ( echo "$Assertions" | grep "Amphetamine" ); then
+        echo "Amphetamine does not require a delay, continuing."
+        else
         echo "Exiting script to avoid disrupting user while these power assertions are active."
         
         exit 0
+        fi
     fi
 }
 
