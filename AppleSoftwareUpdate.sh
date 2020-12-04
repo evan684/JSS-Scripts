@@ -327,7 +327,11 @@ checkForDisplaySleepAssertions() {
 # Store list of software updates in /tmp which gets cleared periodically by the OS and on restarts
 /usr/sbin/softwareupdate -l 2>&1 > "$ListOfSoftwareUpdates"
 
+<<<<<<< HEAD
 UpdatesNoRestart=$(/bin/cat "$ListOfSoftwareUpdates" | /usr/bin/grep -i recommended | /usr/bin/grep -v -i restart | /usr/bin/cut -d , -f 1 | /usr/bin/sed -e 's/^[[:space:]]*//' | /usr/bin/sed -e 's/^Title:\ *//')
+=======
+UpdatesNoRestart=$(/bin/cat "$ListOfSoftwareUpdates" | /usr/bin/grep -i recommended | /usr/bin/grep -v restart | /usr/bin/cut -d , -f 1 | /usr/bin/sed -e 's/^[[:space:]]*//' | /usr/bin/sed -e 's/^Title:\ *//')
+>>>>>>> zappos
 RestartRequired=$(/bin/cat "$ListOfSoftwareUpdates" | /usr/bin/grep -i restart | /usr/bin/grep -v '\*' | /usr/bin/cut -d , -f 1 | /usr/bin/sed -e 's/^[[:space:]]*//' | /usr/bin/sed -e 's/^Title:\ *//')
 
 # Determine Secure Enclave version
