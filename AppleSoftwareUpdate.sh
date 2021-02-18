@@ -92,7 +92,7 @@ DeferralValue="${4}"
 TimeOutinSec="${5}"
 ITContact="${6}"
 AppleSUIcon="${7}"
-MinimumBatteryLevel="60"
+MinimumBatteryLevel="50"
 
 # Set default values
 [[ -z "$DeferralValue" ]] && DeferralValue=3
@@ -317,9 +317,11 @@ checkForDisplaySleepAssertions() {
         if ( echo "$Assertions" | grep "Amphetamine" ); then
         echo "Amphetamine does not require a delay, continuing."
         else
-        echo "Exiting script to avoid disrupting user while these power assertions are active."
-        
-        exit 0
+        # I'm disabling power a Assertions here just because it's not hitting the devices fast enough with this on.  Remove comments below to revert. -Evan
+        #echo "Exiting script to avoid disrupting user while these power assertions are active."
+        #
+        #exit 0
+        echo "User has active power assertion continuing anyway."
         fi
     fi
 }
