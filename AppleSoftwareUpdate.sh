@@ -377,7 +377,7 @@ else
             setDeferral "$BundleID" "$DeferralType" "$CurrTimer" "$DeferralPlist"
             
             # If someone is logged in and they have not canceled $DeferralValue times already, prompt them to install updates that require a restart and state how many more times they can press 'cancel' before updates run automatically.
-            HELPER=$("$jamfHelper" -windowType utility -icon "$AppleSUIcon" -title "Apple Software Update" -description "$StandardUpdatePrompt" -button1 "Continue" -button2 "Postpone" -cancelButton "2" -defaultButton 2 -timeout "$TimeOutinSec")
+            HELPER=$("$jamfHelper" -windowType utility -icon "$AppleSUIcon" -title "Apple Software Update" -description "$StandardUpdatePrompt" -button1 "Continue" -button2 "Postpone" -cancelButton "2" -defaultButton 1 -timeout "$TimeOutinSec")
             echo "Jamf Helper Exit Code: $HELPER"
             
             # If they click "Update" then take them to the software update preference pane
@@ -388,6 +388,7 @@ else
             exit 0
         else
             powerCheck
+            # Swapped default action to continue - Evan
             HELPER=$("$jamfHelper" -windowType utility -icon "$AppleSUIcon" -title "Apple Software Update" -description "$ForcedUpdatePrompt" -button1 "Update" -defaultButton 1 -timeout "$TimeOutinSec" -countdown -alignCountdown "right")
             echo "Jamf Helper Exit Code: $HELPER"
             # Either they clicked "Updates" or
