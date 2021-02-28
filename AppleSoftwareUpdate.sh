@@ -413,5 +413,5 @@ if [[ "$UpdatesNoRestart" != "" ]] && [[ ! "$(/bin/ps -axc | /usr/bin/grep -e Sa
     powerCheck
     updateCLI &>/dev/null
 fi
-
+/usr/local/bin/jamf recon -skipApps -skipFonts -skipPlugins
 exit 0
